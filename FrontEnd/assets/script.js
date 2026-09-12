@@ -17,5 +17,22 @@ figure.appendChild(legende);
   galerie.appendChild(figure);
 }
 }
+async function chargerCategories() {
+  const reponse = await fetch("http://localhost:5678/api/categories");
+  const categories = await reponse.json();
+
+  const filtres = document.querySelector(".filters");
+
+  const boutonTous = document.createElement("button");
+  boutonTous.innerText = "Tous";
+  filtres.appendChild(boutonTous);
+
+  for (const categorie of categories) {
+    const bouton = document.createElement("button");
+    bouton.innerText = categorie.name;
+    filtres.appendChild(bouton);
+  }
+}
 
 chargerTravaux();
+chargerCategories();
