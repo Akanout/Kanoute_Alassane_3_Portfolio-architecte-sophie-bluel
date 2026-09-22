@@ -7,25 +7,42 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Work+Sans&display=swap" rel="stylesheet">
-	<meta name="description" content="">
+	<meta name="description" content="Portfolio de Sophie Bluel, architecte d'intérieur.">
 	<link rel="stylesheet" href="./assets/style.css">
 </head>
 <body>
+
+<!-- Bandeau du mode édition : affiché seulement si l'administrateur est connecté -->
+<div class="mode-edition cache" id="mode-edition">
+	<p>
+		<svg class="icone" viewBox="0 0 24 24" aria-hidden="true">
+			<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+		</svg>
+		Mode édition
+	</p>
+</div>
+
 <header>
 	<h1>Sophie Bluel <span>Architecte d'intérieur</span></h1>
 	<nav>
 		<ul>
-			<li>projets</li>
-			<li>contact</li>
-			<li>login</li>
-			<li><img src="./assets/icons/instagram.png" alt="Instagram"></li>
+			<li><a href="#portfolio">projets</a></li>
+			<li><a href="#contact">contact</a></li>
+			<li id="lien-login"><a href="./login.html">login</a></li>
+			<li id="lien-logout" class="cache"><a href="#">logout</a></li>
+			<li>
+				<a href="https://www.instagram.com" target="_blank" rel="noopener">
+					<img src="./assets/icons/instagram.png" alt="Instagram">
+				</a>
+			</li>
 		</ul>
 	</nav>
 </header>
+
 <main>
 	<section id="introduction">
 		<figure>
-			<img src="./assets/images/sophie-bluel.png" alt="">
+			<img src="./assets/images/sophie-bluel.png" alt="Sophie Bluel, architecte d'intérieur">
 		</figure>
 		<article>
 			<h2>Designer d'espace</h2>
@@ -34,56 +51,24 @@
 			<p>En cas de besoin, une équipe pluridisciplinaire peut-être constituée : architecte DPLG, décorateur(trice)</p>
 		</article>
 	</section>
+
 	<section id="portfolio">
-		<h2>Mes Projets</h2>
-		<div class="filters"></div>
-		<div class="gallery">
-			<figure>
-				<img src="assets/images/abajour-tahina.png" alt="Abajour Tahina">
-				<figcaption>Abajour Tahina</figcaption>
-			</figure>
-			<figure>
-				<img src="assets/images/appartement-paris-v.png" alt="Appartement Paris V">
-				<figcaption>Appartement Paris V</figcaption>
-			</figure>
-			<figure>
-				<img src="assets/images/restaurant-sushisen-londres.png" alt="Restaurant Sushisen - Londres">
-				<figcaption>Restaurant Sushisen - Londres</figcaption>
-			</figure>
-			<figure>
-				<img src="assets/images/la-balisiere.png" alt="Villa “La Balisiere” - Port Louis">
-				<figcaption>Villa “La Balisiere” - Port Louis</figcaption>
-			</figure>
-			<figure>
-				<img src="assets/images/structures-thermopolis.png" alt="Structures Thermopolis">
-				<figcaption>Structures Thermopolis</figcaption>
-			</figure>
-			<figure>
-				<img src="assets/images/appartement-paris-x.png" alt="Appartement Paris X">
-				<figcaption>Appartement Paris X</figcaption>
-			</figure>
-			<figure>
-				<img src="assets/images/le-coteau-cassis.png" alt="Pavillon “Le coteau” - Cassis">
-				<figcaption>Pavillon “Le coteau” - Cassis</figcaption>
-			</figure>
-			<figure>
-				<img src="assets/images/villa-ferneze.png" alt="Villa Ferneze - Isola d’Elba">
-				<figcaption>Villa Ferneze - Isola d’Elba</figcaption>
-			</figure>
-			<figure>
-				<img src="assets/images/appartement-paris-xviii.png" alt="Appartement Paris XVIII">
-				<figcaption>Appartement Paris XVIII</figcaption>
-			</figure>
-			<figure>
-				<img src="assets/images/bar-lullaby-paris.png" alt="Bar “Lullaby” - Paris">
-				<figcaption>Bar “Lullaby” - Paris</figcaption>
-			</figure>
-			<figure>
-				<img src="assets/images/hotel-first-arte-new-delhi.png" alt="Hotel First Arte - New Delhi">
-				<figcaption>Hotel First Arte - New Delhi</figcaption>
-			</figure>
+		<div class="titre-projets">
+			<h2>Mes Projets</h2>
+			<!-- Bouton d'ouverture de la modale : visible seulement en mode édition -->
+			<button class="lien-modifier cache" id="lien-modifier">
+				<svg class="icone" viewBox="0 0 24 24" aria-hidden="true">
+					<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+				</svg>
+				modifier
+			</button>
 		</div>
+		<!-- Les filtres sont créés par JavaScript à partir des catégories de l'API -->
+		<div class="filters"></div>
+		<!-- La galerie est remplie par JavaScript à partir des travaux de l'API -->
+		<div class="gallery"></div>
 	</section>
+
 	<section id="contact">
 		<h2>Contact</h2>
 		<p>Vous avez un projet ? Discutons-en !</p>
@@ -106,6 +91,61 @@
 		</ul>
 	</nav>
 </footer>
+
+<!-- ============ MODALE ============ -->
+<div class="modale cache" id="modale" aria-hidden="true" role="dialog" aria-labelledby="titre-modale">
+	<div class="modale-fenetre" id="modale-fenetre">
+
+		<button class="modale-retour cache" id="modale-retour" aria-label="Revenir à la galerie">
+			<svg class="icone" viewBox="0 0 24 24" aria-hidden="true">
+				<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+			</svg>
+		</button>
+		<button class="modale-fermer" id="modale-fermer" aria-label="Fermer la fenêtre">
+			<svg class="icone" viewBox="0 0 24 24" aria-hidden="true">
+				<path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+			</svg>
+		</button>
+
+		<!-- Vue 1 : la galerie photo -->
+		<div class="modale-vue" id="vue-galerie">
+			<h3 id="titre-modale">Galerie photo</h3>
+			<div class="modale-galerie" id="modale-galerie"></div>
+			<hr>
+			<button class="bouton-vert" id="bouton-ajouter-photo">Ajouter une photo</button>
+		</div>
+
+		<!-- Vue 2 : le formulaire d'ajout -->
+		<div class="modale-vue cache" id="vue-ajout">
+			<h3>Ajout photo</h3>
+			<form id="formulaire-ajout">
+				<!-- L'aperçu de l'image est créé par JavaScript quand un fichier est choisi -->
+				<div class="zone-image" id="zone-image">
+					<div id="zone-image-vide">
+						<svg class="icone-image" viewBox="0 0 24 24" aria-hidden="true">
+							<path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+						</svg>
+						<label class="bouton-fichier" for="image">+ Ajouter photo</label>
+						<input type="file" id="image" name="image" accept="image/png, image/jpeg">
+						<p class="info-fichier">jpg, png : 4mo max</p>
+					</div>
+				</div>
+
+				<label for="titre">Titre</label>
+				<input type="text" id="titre" name="title">
+
+				<label for="categorie">Catégorie</label>
+				<select id="categorie" name="category"></select>
+
+				<p class="message-erreur" id="erreur-ajout"></p>
+				<hr>
+				<button type="submit" class="bouton-vert" id="bouton-valider" disabled>Valider</button>
+			</form>
+		</div>
+
+	</div>
+</div>
+
 <script src="./assets/script.js" defer></script>
 </body>
 </html>
