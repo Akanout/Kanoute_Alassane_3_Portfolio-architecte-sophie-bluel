@@ -174,27 +174,46 @@ async function chargerDonnees() {
 	}
 }
 
+
+// Recupere le token de connexion stocke dans le navigateur.
+// Le token est la preuve que l'utilisateur s'est connecte : le serveur l'a
+// fabrique apres avoir verifie l'email et le mot de passe.
+// On utilise sessionStorage (et pas localStorage) : c'est volontaire, il se
+// vide quand on ferme l'onglet, donc personne ne reste connecte sur le poste.
 function recupererToken() {
 	return sessionStorage.getItem("token");
 }
 
+
+// Repond vrai ou faux : y a-t-il un token ? Donc sommes-nous connectes ?
 function estConnecte() {
 	return recupererToken() !== null;
 }
 
+
+// Bascule la page en mode edition quand l'utilisateur est connecte.
 function appliquerModeEdition() {
+	// Si personne n'est connecte, on ne change rien : la page reste en mode visiteur.
+	// C'est un "retour anticipe" : on sort tout de suite au lieu d'imbriquer un gros if.
 	if (!estConnecte()) {
 		return;
 	}
 
+	// On ne touche pas au style directement : on ajoute ou on enleve des classes,
+	// et c'est le CSS qui decide de l'apparence. La classe "cache" masque un element.
 	document.body.classList.add("connecte");
 	document.getElementById("mode-edition").classList.remove("cache");
 	document.getElementById("lien-modifier").classList.remove("cache");
 	document.getElementById("lien-login").classList.add("cache");
 	document.getElementById("lien-logout").classList.remove("cache");
+	// La maquette ne montre pas les filtres en mode edition : on les masque.
 	conteneurFiltres.classList.add("cache");
 }
 
+
+// Deconnexion : on supprime le token, puis on recharge la page d'accueil,
+// qui repart donc en mode visiteur.
+// preventDefault empeche le lien de suivre son href par defaut.
 document.getElementById("lien-logout").addEventListener("click", function (evenement) {
 	evenement.preventDefault();
 	sessionStorage.removeItem("token");
