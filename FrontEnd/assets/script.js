@@ -220,6 +220,11 @@ document.getElementById("lien-logout").addEventListener("click", function (evene
 	window.location.href = "./index.html";
 });
 
+
+// Ouvre la modale. On enleve la classe "cache" pour l'afficher et on passe
+// aria-hidden a false pour que les lecteurs d'ecran la voient aussi.
+// On revient toujours sur la vue galerie, et on la reconstruit pour etre
+// sur d'afficher les projets a jour.
 function ouvrirModale() {
 	modale.classList.remove("cache");
 	modale.setAttribute("aria-hidden", "false");
@@ -227,35 +232,54 @@ function ouvrirModale() {
 	afficherGalerieModale();
 }
 
+
+// Ferme la modale et remet le formulaire a zero, pour qu'a la prochaine
+// ouverture il ne reste pas l'ancienne saisie.
 function fermerModale() {
 	modale.classList.add("cache");
 	modale.setAttribute("aria-hidden", "true");
 	reinitialiserFormulaire();
 }
 
+
+// La modale a deux vues dans le meme cadre. On n'en affiche qu'une a la fois.
+// Vue 1 : la galerie des photos, avec les poubelles. Pas de fleche retour ici.
 function afficherVueGalerie() {
 	vueGalerie.classList.remove("cache");
 	vueAjout.classList.add("cache");
 	boutonRetour.classList.add("cache");
 }
 
+
+// Vue 2 : le formulaire d'ajout. La fleche retour apparait pour revenir en vue 1.
 function afficherVueAjout() {
 	vueGalerie.classList.add("cache");
 	vueAjout.classList.remove("cache");
 	boutonRetour.classList.remove("cache");
 }
 
+
+// Les quatre boutons de la modale : ouvrir, fermer (la croix), revenir en arriere,
+// et passer au formulaire d'ajout.
 document.getElementById("lien-modifier").addEventListener("click", ouvrirModale);
 document.getElementById("modale-fermer").addEventListener("click", fermerModale);
 document.getElementById("modale-retour").addEventListener("click", afficherVueGalerie);
 document.getElementById("bouton-ajouter-photo").addEventListener("click", afficherVueAjout);
 
+
+// Fermeture en cliquant sur le fond gris autour de la modale.
+// evenement.target est l'element vraiment clique. On verifie qu'il s'agit bien
+// du fond et pas d'un element a l'interieur, sinon le moindre clic dans la
+// modale la fermerait.
 modale.addEventListener("click", function (evenement) {
 	if (evenement.target === modale) {
 		fermerModale();
 	}
 });
 
+
+// Fermeture avec la touche Echap, comme attendu pour une fenetre modale.
+// On ne fait rien si la modale est deja fermee.
 document.addEventListener("keydown", function (evenement) {
 	if (evenement.key === "Escape" && !modale.classList.contains("cache")) {
 		fermerModale();
