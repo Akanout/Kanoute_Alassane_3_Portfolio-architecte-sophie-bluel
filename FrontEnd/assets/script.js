@@ -286,7 +286,11 @@ document.addEventListener("keydown", function (evenement) {
 	}
 });
 
+
+// Remplit la petite galerie de la modale : les memes photos, en miniature,
+// avec un bouton poubelle sur chacune. Pas de legende ici, la maquette n'en met pas.
 function afficherGalerieModale() {
+	// On vide avant de remplir, comme pour la galerie principale.
 	modaleGalerie.innerHTML = "";
 
 	for (const travail of travaux) {
@@ -296,10 +300,14 @@ function afficherGalerieModale() {
 		image.src = travail.imageUrl;
 		image.alt = travail.title;
 
+		
+		// Le bouton poubelle. aria-label donne un nom parlant aux lecteurs d'ecran
+		// ("Supprimer Abajour Tahina"), car l'icone seule ne dit rien.
 		const boutonSupprimer = document.createElement("button");
 		boutonSupprimer.classList.add("bouton-supprimer");
 		boutonSupprimer.setAttribute("aria-label", "Supprimer " + travail.title);
 		boutonSupprimer.innerHTML = ICONE_POUBELLE;
+		// Chaque bouton retient l'identifiant de SON projet et n'envoie que celui-la.
 		boutonSupprimer.addEventListener("click", function () {
 			supprimerTravail(travail.id);
 		});
@@ -310,11 +318,17 @@ function afficherGalerieModale() {
 	}
 }
 
+
+// Supprime un projet : d'abord sur le serveur, ensuite a l'ecran.
 async function supprimerTravail(identifiant) {
 	try {
 		const reponse = await fetch(URL_API + "/works/" + identifiant, {
+			// method DELETE indique au serveur qu'on veut supprimer, pas lire.
 			method: "DELETE",
 			headers: {
+				// L'en-tete Authorization transporte le token. "Bearer" (porteur) est le mot
+				// impose par l'API : il annonce le type de jeton qui suit.
+				// Sans ce token, le serveur repond 401 et refuse la suppression.
 				Authorization: "Bearer " + recupererToken()
 			}
 		});
@@ -323,6 +337,9 @@ async function supprimerTravail(identifiant) {
 			throw new Error("Suppression refusée (" + reponse.status + ")");
 		}
 
+		// Le serveur a accepte. On retire aussi le projet du tableau garde en memoire,
+		// puis on redessine la galerie principale et celle de la modale.
+		// Les deux restent ainsi d'accord sans recharger la page.
 		travaux = travaux.filter(function (travail) {
 			return travail.id !== identifiant;
 		});
