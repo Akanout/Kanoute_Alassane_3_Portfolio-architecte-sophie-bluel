@@ -436,6 +436,10 @@ function supprimerApercu() {
 champTitre.addEventListener("input", verifierFormulaire);
 champCategorie.addEventListener("change", verifierFormulaire);
 
+
+// Remet le formulaire a zero : champs vides, apercu enleve, icone reaffichee,
+// message d'erreur efface et bouton Valider desactive.
+// Appelee a la fermeture de la modale.
 function reinitialiserFormulaire() {
 	formulaireAjout.reset();
 	supprimerApercu();
@@ -444,10 +448,17 @@ function reinitialiserFormulaire() {
 	boutonValider.disabled = true;
 }
 
+
+// Envoi du formulaire : ajoute un nouveau projet.
+// preventDefault empeche le comportement par defaut du navigateur, qui
+// rechargerait la page et ferait perdre la modale.
 formulaireAjout.addEventListener("submit", async function (evenement) {
 	evenement.preventDefault();
 	erreurAjout.innerText = "";
 
+	// FormData sert a envoyer un fichier en meme temps que du texte.
+	// Les noms des champs (image, title, category) sont imposes par l'API :
+	// s'ils ne correspondent pas, le serveur repond 400.
 	const donnees = new FormData();
 	donnees.append("image", champImage.files[0]);
 	donnees.append("title", champTitre.value.trim());
@@ -455,6 +466,11 @@ formulaireAjout.addEventListener("submit", async function (evenement) {
 
 	try {
 		const reponse = await fetch(URL_API + "/works", {
+			// POST = on envoie une nouvelle donnee au serveur.
+			// Important : on ne met PAS de Content-Type ici. Avec FormData, c'est le
+			// navigateur qui doit l'ecrire lui-meme, car il doit y ajouter une frontiere
+			// (boundary) pour separer le fichier du texte. Si on l'ecrit a la main,
+			// l'envoi echoue.
 			method: "POST",
 			headers: {
 				Authorization: "Bearer " + recupererToken()
@@ -466,6 +482,9 @@ formulaireAjout.addEventListener("submit", async function (evenement) {
 			throw new Error("Ajout refusé (" + reponse.status + ")");
 		}
 
+		// Le serveur renvoie le projet cree, avec son identifiant et l'adresse de
+		// l'image. On l'ajoute au tableau en memoire, on redessine les deux galeries,
+		// puis on ferme la modale : tout se met a jour sans recharger la page.
 		const nouveauTravail = await reponse.json();
 		travaux.push(nouveauTravail);
 
@@ -478,5 +497,9 @@ formulaireAjout.addEventListener("submit", async function (evenement) {
 	}
 });
 
+
+// Demarrage du script, une fois que tout est defini au-dessus.
+// 1) on regarde s'il y a un token, pour afficher ou non le mode edition ;
+// 2) on va chercher les donnees sur l'API et on affiche la page.
 appliquerModeEdition();
 chargerDonnees();
