@@ -71,42 +71,63 @@ function afficherTravaux(liste) {
 	}
 }
 
+// Met en surbrillance le bouton de filtre sur lequel on vient de cliquer.
 function activerBouton(boutonClique) {
+	// On enleve d'abord la classe active de TOUS les boutons...
 	const boutons = conteneurFiltres.querySelectorAll("button");
 	for (const bouton of boutons) {
 		bouton.classList.remove("active");
 	}
+	// ...puis on la remet uniquement sur celui qui a ete clique.
+	// Comme ca il n'y a jamais deux boutons allumes en meme temps.
 	boutonClique.classList.add("active");
 }
 
+
+// Fabrique un bouton de filtre et lui attache son comportement.
+// nom = le texte affiche, idCategorie = le numero de la categorie
+// (null pour le bouton "Tous").
 function creerBoutonFiltre(nom, idCategorie) {
 	const bouton = document.createElement("button");
 	bouton.innerText = nom;
 
+	// On branche l'ecouteur de clic tout de suite, a la creation du bouton.
+	// Chaque bouton garde en memoire son propre idCategorie.
 	bouton.addEventListener("click", function () {
 		activerBouton(bouton);
 
+		// Cas du bouton "Tous" : on reaffiche la liste complete et on sort.
 		if (idCategorie === null) {
 			afficherTravaux(travaux);
 			return;
 		}
 
+		// filter garde seulement les projets dont la categorie correspond.
+		// Il cree un nouveau tableau : le tableau travaux d'origine n'est pas modifie,
+		// donc on peut cliquer sur les filtres autant de fois qu'on veut.
 		const travauxFiltres = travaux.filter(function (travail) {
 			return travail.categoryId === idCategorie;
 		});
 		afficherTravaux(travauxFiltres);
 	});
 
+	// On renvoie le bouton fini ; c'est afficherFiltres qui le placera dans la page.
 	return bouton;
 }
 
+
+// Construit la barre de filtres a partir des categories recuperees sur l'API.
 function afficherFiltres() {
 	conteneurFiltres.innerHTML = "";
 
+	// Le bouton "Tous" n'existe pas dans l'API : on l'ajoute a la main,
+	// en premier, et il est actif au chargement de la page.
 	const boutonTous = creerBoutonFiltre("Tous", null);
 	boutonTous.classList.add("active");
 	conteneurFiltres.appendChild(boutonTous);
 
+	// Puis un bouton par categorie renvoyee par l'API.
+	// Si l'architecte ajoute une categorie, le bouton apparait tout seul.
 	for (const categorie of categories) {
 		conteneurFiltres.appendChild(creerBoutonFiltre(categorie.name, categorie.id));
 	}
