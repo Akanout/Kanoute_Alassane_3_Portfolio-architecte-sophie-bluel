@@ -1,8 +1,17 @@
+// Adresse de base de l'API. On la met dans une constante pour ne pas la reecrire partout.
+// Si un jour l'adresse change, on ne modifie qu'ici.
 const URL_API = "http://localhost:5678/api";
 
+
+// Le dessin de la petite poubelle, ecrit en SVG.
+// On le range dans une constante pour ne pas repeter ce long texte dans le code.
 const ICONE_POUBELLE =
 	'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>';
 
+
+// On va chercher une seule fois tous les elements HTML dont on aura besoin.
+// querySelector cherche par classe (le point) et getElementById cherche par id.
+// Les ranger ici evite de refaire la recherche a chaque clic : c'est plus rapide et plus lisible.
 const galerie = document.querySelector(".gallery");
 const conteneurFiltres = document.querySelector(".filters");
 const modale = document.getElementById("modale");
@@ -19,8 +28,13 @@ const zoneImage = document.getElementById("zone-image");
 const zoneImageVide = document.getElementById("zone-image-vide");
 const erreurAjout = document.getElementById("erreur-ajout");
 
+
+// Image d'apercu affichee dans le formulaire. null = il n'y en a pas encore.
 let apercu = null;
 
+
+// Les donnees recuperees sur l'API. On les garde en memoire dans ces deux tableaux
+// pour pouvoir filtrer sans redemander au serveur a chaque clic.
 let travaux = [];
 let categories = [];
 
