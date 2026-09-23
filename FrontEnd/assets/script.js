@@ -38,19 +38,33 @@ let apercu = null;
 let travaux = [];
 let categories = [];
 
+// Affiche dans la galerie les projets contenus dans le tableau recu en parametre.
+// On lui passe soit tous les projets, soit seulement ceux d'une categorie.
 function afficherTravaux(liste) {
+	// On vide la galerie avant de la remplir, sinon les projets s'ajouteraient
+	// a la suite des anciens a chaque clic sur un filtre.
 	galerie.innerHTML = "";
 
+	// On repete le meme bloc pour chaque projet de la liste.
 	for (const travail of liste) {
 		const figure = document.createElement("figure");
 
+		
+		// L'image du projet : src = l'adresse de la photo, alt = le texte lu par les
+		// lecteurs d'ecran et affiche si l'image ne charge pas.
 		const image = document.createElement("img");
 		image.src = travail.imageUrl;
 		image.alt = travail.title;
 
+		
+		// La legende sous l'image, avec le titre du projet.
 		const legende = document.createElement("figcaption");
 		legende.innerText = travail.title;
 
+		
+		// On emboite les elements : l'image et la legende DANS la figure,
+		// puis la figure DANS la galerie. C'est ce dernier appendChild qui
+		// fait vraiment apparaitre le projet a l'ecran.
 		figure.appendChild(image);
 		figure.appendChild(legende);
 		galerie.appendChild(figure);
