@@ -133,23 +133,40 @@ function afficherFiltres() {
 	}
 }
 
+
+// Va chercher les projets et les categories sur l'API, puis affiche la page.
+// async veut dire que la fonction contient des attentes : elle peut mettre
+// le code en pause avec await, sans bloquer le reste de la page.
 async function chargerDonnees() {
+	// try = on essaie. Si quelque chose echoue a l'interieur, on saute
+	// directement dans le catch plus bas au lieu de planter.
 	try {
+		// fetch envoie la requete au serveur. await attend la reponse avant de continuer.
 		const reponseTravaux = await fetch(URL_API + "/works");
+		// Attention : fetch ne plante pas tout seul si le serveur repond une erreur
+		// (404, 500...). Il faut verifier .ok soi-meme et lever l'erreur a la main.
+		// throw arrete la fonction et envoie l'erreur au catch.
 		if (!reponseTravaux.ok) {
 			throw new Error("Travaux indisponibles");
 		}
 		travaux = await reponseTravaux.json();
 
+		// Deuxieme appel : les categories, qui serviront aux filtres
+		// et a la liste deroulante du formulaire d'ajout.
 		const reponseCategories = await fetch(URL_API + "/categories");
 		if (!reponseCategories.ok) {
 			throw new Error("Categories indisponibles");
 		}
 		categories = await reponseCategories.json();
 
+		// Les donnees sont la : on peut construire la galerie, les filtres
+		// et la liste deroulante.
 		afficherTravaux(travaux);
 		afficherFiltres();
 		remplirListeCategories();
+	// catch = si ca a echoue. On affiche un message clair a l'utilisateur
+	// plutot qu'une page vide sans explication.
+	// console.error garde le detail technique pour le developpeur.
 	} catch (erreur) {
 		galerie.innerHTML =
 			"<p class='message-erreur'>Les projets n'ont pas pu être chargés. Vérifiez que le serveur est lancé.</p>";
