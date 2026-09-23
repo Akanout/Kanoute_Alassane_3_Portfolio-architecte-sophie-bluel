@@ -351,9 +351,15 @@ async function supprimerTravail(identifiant) {
 	}
 }
 
+
+// Remplit la liste deroulante du formulaire avec les categories de l'API.
+// Elle n'est donc pas ecrite en dur dans le HTML : si une categorie est ajoutee
+// cote serveur, elle apparait ici automatiquement.
 function remplirListeCategories() {
 	champCategorie.innerHTML = "";
 
+	// Une premiere option vide, pour qu'aucune categorie ne soit choisie au depart
+	// et que l'utilisateur fasse vraiment un choix.
 	const optionVide = document.createElement("option");
 	optionVide.value = "";
 	champCategorie.appendChild(optionVide);
@@ -366,14 +372,21 @@ function remplirListeCategories() {
 	}
 }
 
+
+// Verifie que les trois champs sont remplis, et active ou desactive le bouton
+// Valider en consequence. Appelee a chaque modification d'un champ.
 function verifierFormulaire() {
 	const imageChoisie = champImage.files.length > 0;
 	const titreRempli = champTitre.value.trim() !== "";
 	const categorieChoisie = champCategorie.value !== "";
 
+	// Le bouton n'est actif que si les trois conditions sont vraies en meme temps.
+	// trim() enleve les espaces : un titre fait uniquement d'espaces ne compte pas.
 	boutonValider.disabled = !(imageChoisie && titreRempli && categorieChoisie);
 }
 
+
+// Se declenche quand l'utilisateur choisit une photo dans l'explorateur.
 champImage.addEventListener("change", function () {
 	erreurAjout.innerText = "";
 	const fichier = champImage.files[0];
@@ -383,6 +396,9 @@ champImage.addEventListener("change", function () {
 		return;
 	}
 
+	// Le cahier des charges limite l'image a 4 Mo. On verifie la taille ici,
+	// avant l'envoi : l'utilisateur est prevenu tout de suite au lieu d'attendre
+	// un refus du serveur. 4 * 1024 * 1024 = 4 Mo en octets.
 	if (fichier.size > 4 * 1024 * 1024) {
 		erreurAjout.innerText = "L'image est trop lourde (4 Mo maximum).";
 		champImage.value = "";
@@ -390,6 +406,9 @@ champImage.addEventListener("change", function () {
 		return;
 	}
 
+	// On affiche un apercu de la photo choisie a la place de l'icone.
+	// createObjectURL fabrique une adresse temporaire vers le fichier present
+	// sur l'ordinateur : rien n'est encore envoye au serveur.
 	supprimerApercu();
 	apercu = document.createElement("img");
 	apercu.classList.add("apercu");
@@ -401,6 +420,9 @@ champImage.addEventListener("change", function () {
 	verifierFormulaire();
 });
 
+
+// Enleve l'apercu de la page s'il y en a un. Sert avant d'en afficher un
+// nouveau et quand on remet le formulaire a zero.
 function supprimerApercu() {
 	if (apercu !== null) {
 		apercu.remove();
@@ -408,6 +430,9 @@ function supprimerApercu() {
 	}
 }
 
+
+// On surveille aussi le titre et la categorie, pour reevaluer le bouton Valider
+// des que l'utilisateur tape ou choisit quelque chose.
 champTitre.addEventListener("input", verifierFormulaire);
 champCategorie.addEventListener("change", verifierFormulaire);
 
