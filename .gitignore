@@ -1,3 +1,6 @@
 .idea
 .DS_Store
 Thumbs.db
+
+# Documents de revision personnels
+*.pdf
