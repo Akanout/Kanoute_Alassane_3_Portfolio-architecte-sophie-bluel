@@ -12,7 +12,7 @@
 </head>
 <body>
 
-<!-- Bandeau du mode édition : affiché seulement si l'administrateur est connecté -->
+<!-- Bandeau du mode édition -->
 <div class="mode-edition cache" id="mode-edition">
 	<p>
 		<svg class="icone" viewBox="0 0 24 24" aria-hidden="true">
@@ -55,7 +55,6 @@
 	<section id="portfolio">
 		<div class="titre-projets">
 			<h2>Mes Projets</h2>
-			<!-- Bouton d'ouverture de la modale : visible seulement en mode édition -->
 			<button class="lien-modifier cache" id="lien-modifier">
 				<svg class="icone" viewBox="0 0 24 24" aria-hidden="true">
 					<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
@@ -63,9 +62,8 @@
 				modifier
 			</button>
 		</div>
-		<!-- Les filtres sont créés par JavaScript à partir des catégories de l'API -->
+		<!-- Filtres et galerie remplis par JavaScript -->
 		<div class="filters"></div>
-		<!-- La galerie est remplie par JavaScript à partir des travaux de l'API -->
 		<div class="gallery"></div>
 	</section>
 
@@ -92,7 +90,7 @@
 	</nav>
 </footer>
 
-<!-- ============ MODALE ============ -->
+<!-- Modale -->
 <div class="modale cache" id="modale" aria-hidden="true" role="dialog" aria-labelledby="titre-modale">
 	<div class="modale-fenetre" id="modale-fenetre">
 
@@ -107,7 +105,7 @@
 			</svg>
 		</button>
 
-		<!-- Vue 1 : la galerie photo -->
+		<!-- Vue 1 : galerie -->
 		<div class="modale-vue" id="vue-galerie">
 			<h3 id="titre-modale">Galerie photo</h3>
 			<div class="modale-galerie" id="modale-galerie"></div>
@@ -116,11 +114,10 @@
 			<button class="bouton-vert" id="bouton-ajouter-photo">Ajouter une photo</button>
 		</div>
 
-		<!-- Vue 2 : le formulaire d'ajout -->
+		<!-- Vue 2 : ajout photo -->
 		<div class="modale-vue cache" id="vue-ajout">
 			<h3>Ajout photo</h3>
 			<form id="formulaire-ajout">
-				<!-- L'aperçu de l'image est créé par JavaScript quand un fichier est choisi -->
 				<div class="zone-image" id="zone-image">
 					<div id="zone-image-vide">
 						<svg class="icone-image" viewBox="0 0 24 24" aria-hidden="true">

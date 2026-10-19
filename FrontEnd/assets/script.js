@@ -1,17 +1,10 @@
-// Adresse de base de l'API. On la met dans une constante pour ne pas la reecrire partout.
-// Si un jour l'adresse change, on ne modifie qu'ici.
+// Adresse de l'API (backend lancé en local)
 const URL_API = "http://localhost:5678/api";
 
-
-// Le dessin de la petite poubelle, ecrit en SVG.
-// On le range dans une constante pour ne pas repeter ce long texte dans le code.
 const ICONE_POUBELLE =
 	'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>';
 
-
-// On va chercher une seule fois tous les elements HTML dont on aura besoin.
-// querySelector cherche par classe (le point) et getElementById cherche par id.
-// Les ranger ici evite de refaire la recherche a chaque clic : c'est plus rapide et plus lisible.
+// Éléments de la page utilisés par le script
 const galerie = document.querySelector(".gallery");
 const conteneurFiltres = document.querySelector(".filters");
 const modale = document.getElementById("modale");
@@ -29,145 +22,95 @@ const zoneImageVide = document.getElementById("zone-image-vide");
 const erreurAjout = document.getElementById("erreur-ajout");
 const erreurGalerie = document.getElementById("erreur-galerie");
 
-
-// Image d'apercu affichee dans le formulaire. null = il n'y en a pas encore.
 let apercu = null;
 
-
-// Les donnees recuperees sur l'API. On les garde en memoire dans ces deux tableaux
-// pour pouvoir filtrer sans redemander au serveur a chaque clic.
+// Données reçues de l'API, gardées en mémoire pour filtrer sans rappeler le serveur
 let travaux = [];
 let categories = [];
 
-// Affiche dans la galerie les projets contenus dans le tableau recu en parametre.
-// On lui passe soit tous les projets, soit seulement ceux d'une categorie.
+// Affiche une liste de projets dans la galerie
 function afficherTravaux(liste) {
-	// On vide la galerie avant de la remplir, sinon les projets s'ajouteraient
-	// a la suite des anciens a chaque clic sur un filtre.
 	galerie.innerHTML = "";
 
-	// On repete le meme bloc pour chaque projet de la liste.
 	for (const travail of liste) {
 		const figure = document.createElement("figure");
 
-		
-		// L'image du projet : src = l'adresse de la photo, alt = le texte lu par les
-		// lecteurs d'ecran et affiche si l'image ne charge pas.
 		const image = document.createElement("img");
 		image.src = travail.imageUrl;
 		image.alt = travail.title;
 
-		
-		// La legende sous l'image, avec le titre du projet.
 		const legende = document.createElement("figcaption");
 		legende.innerText = travail.title;
 
-		
-		// On emboite les elements : l'image et la legende DANS la figure,
-		// puis la figure DANS la galerie. C'est ce dernier appendChild qui
-		// fait vraiment apparaitre le projet a l'ecran.
 		figure.appendChild(image);
 		figure.appendChild(legende);
 		galerie.appendChild(figure);
 	}
 }
 
-// Met en surbrillance le bouton de filtre sur lequel on vient de cliquer.
+// Met en vert le filtre sélectionné
 function activerBouton(boutonClique) {
-	// On enleve d'abord la classe active de TOUS les boutons...
 	const boutons = conteneurFiltres.querySelectorAll("button");
 	for (const bouton of boutons) {
 		bouton.classList.remove("active");
 	}
-	// ...puis on la remet uniquement sur celui qui a ete clique.
-	// Comme ca il n'y a jamais deux boutons allumes en meme temps.
 	boutonClique.classList.add("active");
 }
 
-
-// Fabrique un bouton de filtre et lui attache son comportement.
-// nom = le texte affiche, idCategorie = le numero de la categorie
-// (null pour le bouton "Tous").
+// Crée un bouton de filtre (idCategorie vaut null pour « Tous »)
 function creerBoutonFiltre(nom, idCategorie) {
 	const bouton = document.createElement("button");
 	bouton.innerText = nom;
 
-	// On branche l'ecouteur de clic tout de suite, a la creation du bouton.
-	// Chaque bouton garde en memoire son propre idCategorie.
 	bouton.addEventListener("click", function () {
 		activerBouton(bouton);
 
-		// Cas du bouton "Tous" : on reaffiche la liste complete et on sort.
 		if (idCategorie === null) {
 			afficherTravaux(travaux);
 			return;
 		}
 
-		// filter garde seulement les projets dont la categorie correspond.
-		// Il cree un nouveau tableau : le tableau travaux d'origine n'est pas modifie,
-		// donc on peut cliquer sur les filtres autant de fois qu'on veut.
 		const travauxFiltres = travaux.filter(function (travail) {
 			return travail.categoryId === idCategorie;
 		});
 		afficherTravaux(travauxFiltres);
 	});
 
-	// On renvoie le bouton fini ; c'est afficherFiltres qui le placera dans la page.
 	return bouton;
 }
 
-
-// Construit la barre de filtres a partir des categories recuperees sur l'API.
+// Construit la barre de filtres à partir des catégories
 function afficherFiltres() {
 	conteneurFiltres.innerHTML = "";
 
-	// Le bouton "Tous" n'existe pas dans l'API : on l'ajoute a la main,
-	// en premier, et il est actif au chargement de la page.
 	const boutonTous = creerBoutonFiltre("Tous", null);
 	boutonTous.classList.add("active");
 	conteneurFiltres.appendChild(boutonTous);
 
-	// Puis un bouton par categorie renvoyee par l'API.
-	// Si l'architecte ajoute une categorie, le bouton apparait tout seul.
 	for (const categorie of categories) {
 		conteneurFiltres.appendChild(creerBoutonFiltre(categorie.name, categorie.id));
 	}
 }
 
-
-// Va chercher les projets et les categories sur l'API, puis affiche la page.
-// async veut dire que la fonction contient des attentes : elle peut mettre
-// le code en pause avec await, sans bloquer le reste de la page.
+// Récupère les projets et les catégories sur l'API
 async function chargerDonnees() {
-	// try = on essaie. Si quelque chose echoue a l'interieur, on saute
-	// directement dans le catch plus bas au lieu de planter.
 	try {
-		// fetch envoie la requete au serveur. await attend la reponse avant de continuer.
 		const reponseTravaux = await fetch(URL_API + "/works");
-		// Attention : fetch ne plante pas tout seul si le serveur repond une erreur
-		// (404, 500...). Il faut verifier .ok soi-meme et lever l'erreur a la main.
-		// throw arrete la fonction et envoie l'erreur au catch.
+		// fetch ne lève pas d'erreur sur un 404 ou un 500 : on vérifie nous-mêmes
 		if (!reponseTravaux.ok) {
 			throw new Error("Travaux indisponibles");
 		}
 		travaux = await reponseTravaux.json();
 
-		// Deuxieme appel : les categories, qui serviront aux filtres
-		// et a la liste deroulante du formulaire d'ajout.
 		const reponseCategories = await fetch(URL_API + "/categories");
 		if (!reponseCategories.ok) {
 			throw new Error("Categories indisponibles");
 		}
 		categories = await reponseCategories.json();
 
-		// Les donnees sont la : on peut construire la galerie, les filtres
-		// et la liste deroulante.
 		afficherTravaux(travaux);
 		afficherFiltres();
 		remplirListeCategories();
-	// catch = si ca a echoue. On affiche un message clair a l'utilisateur
-	// plutot qu'une page vide sans explication.
-	// console.error garde le detail technique pour le developpeur.
 	} catch (erreur) {
 		galerie.innerHTML =
 			"<p class='message-erreur'>Les projets n'ont pas pu être chargés. Vérifiez que le serveur est lancé.</p>";
@@ -175,57 +118,37 @@ async function chargerDonnees() {
 	}
 }
 
-
-// Recupere le token de connexion stocke dans le navigateur.
-// Le token est la preuve que l'utilisateur s'est connecte : le serveur l'a
-// fabrique apres avoir verifie l'email et le mot de passe.
-// On utilise sessionStorage (et pas localStorage) : c'est volontaire, il se
-// vide quand on ferme l'onglet, donc personne ne reste connecte sur le poste.
+// Token stocké dans sessionStorage : il disparaît à la fermeture de l'onglet
 function recupererToken() {
 	return sessionStorage.getItem("token");
 }
 
-
-// Repond vrai ou faux : y a-t-il un token ? Donc sommes-nous connectes ?
 function estConnecte() {
 	return recupererToken() !== null;
 }
 
-
-// Bascule la page en mode edition quand l'utilisateur est connecte.
+// Affiche le mode édition si l'utilisateur est connecté
 function appliquerModeEdition() {
-	// Si personne n'est connecte, on ne change rien : la page reste en mode visiteur.
-	// C'est un "retour anticipe" : on sort tout de suite au lieu d'imbriquer un gros if.
 	if (!estConnecte()) {
 		return;
 	}
 
-	// On ne touche pas au style directement : on ajoute ou on enleve des classes,
-	// et c'est le CSS qui decide de l'apparence. La classe "cache" masque un element.
 	document.body.classList.add("connecte");
 	document.getElementById("mode-edition").classList.remove("cache");
 	document.getElementById("lien-modifier").classList.remove("cache");
 	document.getElementById("lien-login").classList.add("cache");
 	document.getElementById("lien-logout").classList.remove("cache");
-	// La maquette ne montre pas les filtres en mode edition : on les masque.
 	conteneurFiltres.classList.add("cache");
 }
 
-
-// Deconnexion : on supprime le token, puis on recharge la page d'accueil,
-// qui repart donc en mode visiteur.
-// preventDefault empeche le lien de suivre son href par defaut.
+// Déconnexion : on supprime le token
 document.getElementById("lien-logout").addEventListener("click", function (evenement) {
 	evenement.preventDefault();
 	sessionStorage.removeItem("token");
 	window.location.href = "./index.html";
 });
 
-
-// Ouvre la modale. On enleve la classe "cache" pour l'afficher et on passe
-// aria-hidden a false pour que les lecteurs d'ecran la voient aussi.
-// On revient toujours sur la vue galerie, et on la reconstruit pour etre
-// sur d'afficher les projets a jour.
+// Ouverture et fermeture de la modale, et passage d'une vue à l'autre
 function ouvrirModale() {
 	modale.classList.remove("cache");
 	modale.setAttribute("aria-hidden", "false");
@@ -234,18 +157,12 @@ function ouvrirModale() {
 	afficherGalerieModale();
 }
 
-
-// Ferme la modale et remet le formulaire a zero, pour qu'a la prochaine
-// ouverture il ne reste pas l'ancienne saisie.
 function fermerModale() {
 	modale.classList.add("cache");
 	modale.setAttribute("aria-hidden", "true");
 	reinitialiserFormulaire();
 }
 
-
-// La modale a deux vues dans le meme cadre. On n'en affiche qu'une a la fois.
-// Vue 1 : la galerie des photos, avec les poubelles. Pas de fleche retour ici.
 function afficherVueGalerie() {
 	vueGalerie.classList.remove("cache");
 	vueAjout.classList.add("cache");
@@ -253,47 +170,33 @@ function afficherVueGalerie() {
 	reinitialiserFormulaire();
 }
 
-
-// Vue 2 : le formulaire d'ajout. La fleche retour apparait pour revenir en vue 1.
 function afficherVueAjout() {
 	vueGalerie.classList.add("cache");
 	vueAjout.classList.remove("cache");
 	boutonRetour.classList.remove("cache");
 }
 
-
-// Les quatre boutons de la modale : ouvrir, fermer (la croix), revenir en arriere,
-// et passer au formulaire d'ajout.
 document.getElementById("lien-modifier").addEventListener("click", ouvrirModale);
 document.getElementById("modale-fermer").addEventListener("click", fermerModale);
 document.getElementById("modale-retour").addEventListener("click", afficherVueGalerie);
 document.getElementById("bouton-ajouter-photo").addEventListener("click", afficherVueAjout);
 
-
-// Fermeture en cliquant sur le fond gris autour de la modale.
-// evenement.target est l'element vraiment clique. On verifie qu'il s'agit bien
-// du fond et pas d'un element a l'interieur, sinon le moindre clic dans la
-// modale la fermerait.
+// Fermeture au clic sur le fond gris, pas sur le contenu
 modale.addEventListener("click", function (evenement) {
 	if (evenement.target === modale) {
 		fermerModale();
 	}
 });
 
-
-// Fermeture avec la touche Echap, comme attendu pour une fenetre modale.
-// On ne fait rien si la modale est deja fermee.
+// Fermeture avec la touche Échap
 document.addEventListener("keydown", function (evenement) {
 	if (evenement.key === "Escape" && !modale.classList.contains("cache")) {
 		fermerModale();
 	}
 });
 
-
-// Remplit la petite galerie de la modale : les memes photos, en miniature,
-// avec un bouton poubelle sur chacune. Pas de legende ici, la maquette n'en met pas.
+// Galerie de la modale, avec un bouton de suppression par projet
 function afficherGalerieModale() {
-	// On vide avant de remplir, comme pour la galerie principale.
 	modaleGalerie.innerHTML = "";
 
 	for (const travail of travaux) {
@@ -303,14 +206,10 @@ function afficherGalerieModale() {
 		image.src = travail.imageUrl;
 		image.alt = travail.title;
 
-		
-		// Le bouton poubelle. aria-label donne un nom parlant aux lecteurs d'ecran
-		// ("Supprimer Abajour Tahina"), car l'icone seule ne dit rien.
 		const boutonSupprimer = document.createElement("button");
 		boutonSupprimer.classList.add("bouton-supprimer");
 		boutonSupprimer.setAttribute("aria-label", "Supprimer " + travail.title);
 		boutonSupprimer.innerHTML = ICONE_POUBELLE;
-		// Chaque bouton retient l'identifiant de SON projet et n'envoie que celui-la.
 		boutonSupprimer.addEventListener("click", function () {
 			supprimerTravail(travail.id);
 		});
@@ -321,17 +220,12 @@ function afficherGalerieModale() {
 	}
 }
 
-
-// Supprime un projet : d'abord sur le serveur, ensuite a l'ecran.
+// Supprime un projet sur le serveur, puis à l'écran
 async function supprimerTravail(identifiant) {
 	try {
 		const reponse = await fetch(URL_API + "/works/" + identifiant, {
-			// method DELETE indique au serveur qu'on veut supprimer, pas lire.
 			method: "DELETE",
 			headers: {
-				// L'en-tete Authorization transporte le token. "Bearer" (porteur) est le mot
-				// impose par l'API : il annonce le type de jeton qui suit.
-				// Sans ce token, le serveur repond 401 et refuse la suppression.
 				Authorization: "Bearer " + recupererToken()
 			}
 		});
@@ -340,9 +234,6 @@ async function supprimerTravail(identifiant) {
 			throw new Error("Suppression refusée (" + reponse.status + ")");
 		}
 
-		// Le serveur a accepte. On retire aussi le projet du tableau garde en memoire,
-		// puis on redessine la galerie principale et celle de la modale.
-		// Les deux restent ainsi d'accord sans recharger la page.
 		travaux = travaux.filter(function (travail) {
 			return travail.id !== identifiant;
 		});
@@ -354,15 +245,10 @@ async function supprimerTravail(identifiant) {
 	}
 }
 
-
-// Remplit la liste deroulante du formulaire avec les categories de l'API.
-// Elle n'est donc pas ecrite en dur dans le HTML : si une categorie est ajoutee
-// cote serveur, elle apparait ici automatiquement.
+// Remplit la liste des catégories du formulaire
 function remplirListeCategories() {
 	champCategorie.innerHTML = "";
 
-	// Une premiere option vide, pour qu'aucune categorie ne soit choisie au depart
-	// et que l'utilisateur fasse vraiment un choix.
 	const optionVide = document.createElement("option");
 	optionVide.value = "";
 	champCategorie.appendChild(optionVide);
@@ -375,21 +261,16 @@ function remplirListeCategories() {
 	}
 }
 
-
-// Verifie que les trois champs sont remplis, et active ou desactive le bouton
-// Valider en consequence. Appelee a chaque modification d'un champ.
+// Active le bouton Valider seulement si les 3 champs sont remplis
 function verifierFormulaire() {
 	const imageChoisie = champImage.files.length > 0;
 	const titreRempli = champTitre.value.trim() !== "";
 	const categorieChoisie = champCategorie.value !== "";
 
-	// Le bouton n'est actif que si les trois conditions sont vraies en meme temps.
-	// trim() enleve les espaces : un titre fait uniquement d'espaces ne compte pas.
 	boutonValider.disabled = !(imageChoisie && titreRempli && categorieChoisie);
 }
 
-
-// Se declenche quand l'utilisateur choisit une photo dans l'explorateur.
+// Vérifie la taille de l'image (4 Mo maximum) et affiche un aperçu
 champImage.addEventListener("change", function () {
 	erreurAjout.innerText = "";
 	const fichier = champImage.files[0];
@@ -399,9 +280,6 @@ champImage.addEventListener("change", function () {
 		return;
 	}
 
-	// Le cahier des charges limite l'image a 4 Mo. On verifie la taille ici,
-	// avant l'envoi : l'utilisateur est prevenu tout de suite au lieu d'attendre
-	// un refus du serveur. 4 * 1024 * 1024 = 4 Mo en octets.
 	if (fichier.size > 4 * 1024 * 1024) {
 		erreurAjout.innerText = "L'image est trop lourde (4 Mo maximum).";
 		champImage.value = "";
@@ -409,9 +287,6 @@ champImage.addEventListener("change", function () {
 		return;
 	}
 
-	// On affiche un apercu de la photo choisie a la place de l'icone.
-	// createObjectURL fabrique une adresse temporaire vers le fichier present
-	// sur l'ordinateur : rien n'est encore envoye au serveur.
 	supprimerApercu();
 	apercu = document.createElement("img");
 	apercu.classList.add("apercu");
@@ -423,9 +298,6 @@ champImage.addEventListener("change", function () {
 	verifierFormulaire();
 });
 
-
-// Enleve l'apercu de la page s'il y en a un. Sert avant d'en afficher un
-// nouveau et quand on remet le formulaire a zero.
 function supprimerApercu() {
 	if (apercu !== null) {
 		apercu.remove();
@@ -433,16 +305,10 @@ function supprimerApercu() {
 	}
 }
 
-
-// On surveille aussi le titre et la categorie, pour reevaluer le bouton Valider
-// des que l'utilisateur tape ou choisit quelque chose.
 champTitre.addEventListener("input", verifierFormulaire);
 champCategorie.addEventListener("change", verifierFormulaire);
 
-
-// Remet le formulaire a zero : champs vides, apercu enleve, icone reaffichee,
-// message d'erreur efface et bouton Valider desactive.
-// Appelee a la fermeture de la modale.
+// Remet le formulaire à zéro
 function reinitialiserFormulaire() {
 	formulaireAjout.reset();
 	supprimerApercu();
@@ -451,17 +317,11 @@ function reinitialiserFormulaire() {
 	boutonValider.disabled = true;
 }
 
-
-// Envoi du formulaire : ajoute un nouveau projet.
-// preventDefault empeche le comportement par defaut du navigateur, qui
-// rechargerait la page et ferait perdre la modale.
+// Envoi d'un nouveau projet à l'API
 formulaireAjout.addEventListener("submit", async function (evenement) {
 	evenement.preventDefault();
 	erreurAjout.innerText = "";
 
-	// FormData sert a envoyer un fichier en meme temps que du texte.
-	// Les noms des champs (image, title, category) sont imposes par l'API :
-	// s'ils ne correspondent pas, le serveur repond 400.
 	const donnees = new FormData();
 	donnees.append("image", champImage.files[0]);
 	donnees.append("title", champTitre.value.trim());
@@ -469,11 +329,7 @@ formulaireAjout.addEventListener("submit", async function (evenement) {
 
 	try {
 		const reponse = await fetch(URL_API + "/works", {
-			// POST = on envoie une nouvelle donnee au serveur.
-			// Important : on ne met PAS de Content-Type ici. Avec FormData, c'est le
-			// navigateur qui doit l'ecrire lui-meme, car il doit y ajouter une frontiere
-			// (boundary) pour separer le fichier du texte. Si on l'ecrit a la main,
-			// l'envoi echoue.
+			// Pas de Content-Type : avec FormData, c'est le navigateur qui l'ajoute
 			method: "POST",
 			headers: {
 				Authorization: "Bearer " + recupererToken()
@@ -485,9 +341,6 @@ formulaireAjout.addEventListener("submit", async function (evenement) {
 			throw new Error("Ajout refusé (" + reponse.status + ")");
 		}
 
-		// Le serveur renvoie le projet cree, avec son identifiant et l'adresse de
-		// l'image. On l'ajoute au tableau en memoire, on redessine les deux galeries,
-		// puis on ferme la modale : tout se met a jour sans recharger la page.
 		const nouveauTravail = await reponse.json();
 		travaux.push(nouveauTravail);
 
@@ -500,9 +353,6 @@ formulaireAjout.addEventListener("submit", async function (evenement) {
 	}
 });
 
-
-// Demarrage du script, une fois que tout est defini au-dessus.
-// 1) on regarde s'il y a un token, pour afficher ou non le mode edition ;
-// 2) on va chercher les donnees sur l'API et on affiche la page.
+// Démarrage
 appliquerModeEdition();
 chargerDonnees();
