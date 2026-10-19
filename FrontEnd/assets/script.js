@@ -27,6 +27,7 @@ const boutonValider = document.getElementById("bouton-valider");
 const zoneImage = document.getElementById("zone-image");
 const zoneImageVide = document.getElementById("zone-image-vide");
 const erreurAjout = document.getElementById("erreur-ajout");
+const erreurGalerie = document.getElementById("erreur-galerie");
 
 
 // Image d'apercu affichee dans le formulaire. null = il n'y en a pas encore.
@@ -228,6 +229,7 @@ document.getElementById("lien-logout").addEventListener("click", function (evene
 function ouvrirModale() {
 	modale.classList.remove("cache");
 	modale.setAttribute("aria-hidden", "false");
+	erreurGalerie.innerText = "";
 	afficherVueGalerie();
 	afficherGalerieModale();
 }
@@ -248,6 +250,7 @@ function afficherVueGalerie() {
 	vueGalerie.classList.remove("cache");
 	vueAjout.classList.add("cache");
 	boutonRetour.classList.add("cache");
+	reinitialiserFormulaire();
 }
 
 
@@ -346,7 +349,7 @@ async function supprimerTravail(identifiant) {
 		afficherTravaux(travaux);
 		afficherGalerieModale();
 	} catch (erreur) {
-		erreurAjout.innerText = "La suppression a échoué. Reconnectez-vous et réessayez.";
+		erreurGalerie.innerText = "La suppression a échoué. Reconnectez-vous et réessayez.";
 		console.error(erreur);
 	}
 }
